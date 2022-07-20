@@ -1,1 +1,1 @@
-main: bin/kenkoukun -token OTk4OTI0MDM5MDc2NzA4MzYy.Gd8aG-.9ry35LeUhF7rMcwCqhBEle3N0SQ9GB0ZwEs-RE -guild 982638755028561980 -channel 982638755536064545
+main: bin/kenkoukun -token $BOT_TOKEN -guild $GUILD_ID -channel $CHANNEL_ID
