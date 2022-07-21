@@ -17,6 +17,7 @@ var (
 	BotToken  = flag.String("token", "", "bot no token")
 	GuildID   = flag.String("guild", "", "kono guild desika ugokan w")
 	ChannelID = flag.String("channel", "", "kono channel desika ugokan w")
+	RoleID    = flag.String("role", "", "kieru kikisen role")
 )
 
 func init() {
@@ -29,6 +30,8 @@ func main() {
 		log.Fatalf("Invalid bot parameters: %v", err)
 		return
 	}
+
+	session.AddHandler(voiceStateUpdateEvent)
 
 	err = session.Open()
 	if err != nil {
@@ -91,4 +94,12 @@ func forceKenkou(session *discordgo.Session) bool {
 	}
 	fmt.Println(">< All kicked.")
 	return true
+}
+
+func voiceStateUpdateEvent(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
+	if v.ChannelID == *ChannelID {
+		s.GuildMemberRoleAdd(*GuildID, v.UserID, *RoleID)
+	} else if v.ChannelID == "" {
+		s.GuildMemberRoleRemove(*GuildID, v.UserID, *RoleID)
+	}
 }
