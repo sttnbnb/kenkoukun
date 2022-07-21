@@ -36,7 +36,8 @@ func main() {
 		return
 	}
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	fmt.Println("Connection established.")
+	fmt.Println("Hi there :)")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt)
@@ -77,6 +78,7 @@ func checkWeekday(time time.Time) bool {
 
 func joinVC(session *discordgo.Session) {
 	session.ChannelVoiceJoin(*GuildID, *ChannelID, true, true)
+	fmt.Println("|_･) VC Joined.")
 }
 
 func forceKenkou(session *discordgo.Session) bool {
@@ -87,5 +89,6 @@ func forceKenkou(session *discordgo.Session) bool {
 	for _, member := range members {
 		session.GuildMemberMove(*GuildID, member.User.ID, nil)
 	}
+	fmt.Println(">< All kicked.")
 	return true
 }
