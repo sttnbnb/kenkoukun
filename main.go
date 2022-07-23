@@ -43,7 +43,6 @@ func main() {
 
 	fmt.Println("Connection established.")
 	fmt.Println("Hi there :)")
-	joinVC(session)
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt)
