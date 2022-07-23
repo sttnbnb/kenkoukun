@@ -34,11 +34,16 @@ func main() {
 	}
 
 	session.AddHandler(voiceStateUpdateEvent)
+	session.AddHandler(SlashCommandsHandler)
 
 	err = session.Open()
 	if err != nil {
 		log.Fatalf("Error opening connection: %v", err)
 		return
+	}
+
+	for _, cmd := range commands {
+		session.ApplicationCommandCreate(session.State.User.ID, *GuildID, cmd)
 	}
 
 	fmt.Println("Connection established.")
@@ -117,4 +122,33 @@ func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
 		fmt.Print("err", err)
 	}
 	vc.Speaking(false)
+}
+
+var commands = []*discordgo.ApplicationCommand{
+	{
+		Name:        "kenkou",
+		Description: "Force Kenkou",
+	},
+}
+
+func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
+	cmd := i.ApplicationCommandData().Name
+	if cmd == "kenkou" {
+		joinVC(session)
+		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Let's Kenkou!",
+				Flags:   1 << 6,
+			},
+		})
+	loop:
+		for {
+			select {
+			case <-time.After(5 * time.Minute):
+				forceKenkou(session)
+				break loop
+			}
+		}
+	}
 }
