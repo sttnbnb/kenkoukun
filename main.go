@@ -134,7 +134,8 @@ var commands = []*discordgo.ApplicationCommand{
 func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	cmd := i.ApplicationCommandData().Name
 	if cmd == "kenkou" {
-		joinVC(session)
+		go joinVC(session)
+
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -142,6 +143,7 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 				Flags:   1 << 6,
 			},
 		})
+
 	loop:
 		for {
 			select {
