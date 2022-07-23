@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jonas747/dca"
 )
 
 var (
@@ -80,7 +82,8 @@ func checkWeekday(time time.Time) bool {
 }
 
 func joinVC(session *discordgo.Session) {
-	session.ChannelVoiceJoin(*GuildID, *ChannelID, true, true)
+	vc, _ := session.ChannelVoiceJoin(*GuildID, *ChannelID, false, true)
+	go playHotaru(session, vc)
 	fmt.Println("|_･) VC Joined.")
 }
 
@@ -102,4 +105,16 @@ func voiceStateUpdateEvent(s *discordgo.Session, v *discordgo.VoiceStateUpdate) 
 	} else if v.ChannelID == "" {
 		s.GuildMemberRoleRemove(*GuildID, v.UserID, *RoleID)
 	}
+}
+
+func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
+	encodeSession, _ := dca.EncodeFile("./hotaru.mp3", dca.StdEncodeOptions)
+	vc.Speaking(true)
+	done := make(chan error)
+	dca.NewStream(encodeSession, vc, done)
+	err := <-done
+	if err != nil && err != io.EOF {
+		fmt.Print("err", err)
+	}
+	vc.Speaking(false)
 }
