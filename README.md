@@ -3,6 +3,7 @@
 ## build
 
 ```bash
+$ sudo apt-get install ffmpeg
 $ go build
 ```
 
