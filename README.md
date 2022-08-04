@@ -1,8 +1,13 @@
 # kenkoukun
 
-### Build and run
+### build
 
 ```bash
-$ go build main.go
-$ ./main -token <bot no token> -guild <guild no id> -channel <voice channel no id> -role <kikisen mireru role>
+$ go build
+```
+
+### run
+
+```bash
+$ ./kenkoukun -token <bot no token> -guild <guild no id> -channel <voice channel no id> -role <kikisen mireru role>
 ```
