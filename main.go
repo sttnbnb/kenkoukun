@@ -113,7 +113,7 @@ func voiceStateUpdateEvent(s *discordgo.Session, v *discordgo.VoiceStateUpdate) 
 }
 
 func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
-	encodeSession, _ := dca.EncodeFile("./hotaru.mp3", dca.StdEncodeOptions)
+	encodeSession, _ := dca.EncodeFile("./assets/hotaru.mp3", dca.StdEncodeOptions)
 	vc.Speaking(true)
 	done := make(chan error)
 	dca.NewStream(encodeSession, vc, done)
