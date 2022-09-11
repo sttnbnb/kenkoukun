@@ -19,7 +19,6 @@ var (
 	BotToken  = flag.String("token", "", "bot no token")
 	GuildID   = flag.String("guild", "", "kono guild desika ugokan w")
 	ChannelID = flag.String("channel", "", "kono channel desika ugokan w")
-	RoleID    = flag.String("role", "", "kieru kikisen role")
 )
 
 func init() {
@@ -33,7 +32,6 @@ func main() {
 		return
 	}
 
-	session.AddHandler(voiceStateUpdateEvent)
 	session.AddHandler(SlashCommandsHandler)
 
 	err = session.Open()
@@ -104,14 +102,6 @@ func forceKenkou(session *discordgo.Session) bool {
 	return true
 }
 
-func voiceStateUpdateEvent(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
-	if v.ChannelID == *ChannelID {
-		s.GuildMemberRoleAdd(*GuildID, v.UserID, *RoleID)
-	} else if v.ChannelID == "" {
-		s.GuildMemberRoleRemove(*GuildID, v.UserID, *RoleID)
-	}
-}
-
 func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
 	encodeSession, _ := dca.EncodeFile("./assets/hotaru.mp3", dca.StdEncodeOptions)
 	vc.Speaking(true)
@@ -119,7 +109,7 @@ func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
 	dca.NewStream(encodeSession, vc, done)
 	err := <-done
 	if err != nil && err != io.EOF {
-		fmt.Print("err", err)
+		fmt.Println("err", err)
 	}
 	vc.Speaking(false)
 }
