@@ -1,0 +1,10 @@
+[Unit]
+Description = Kenkoukun.go
+
+[Service]
+WorkingDirectory=/home/ubuntu/kenkoukun
+ExecStart=make docker/start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

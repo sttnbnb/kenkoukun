@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,17 +15,13 @@ import (
 )
 
 var (
-	BotToken  = flag.String("token", "", "bot no token")
-	GuildID   = flag.String("guild", "", "kono guild desika ugokan w")
-	ChannelID = flag.String("channel", "", "kono channel desika ugokan w")
+	BotToken  = os.Getenv("BOT_TOKEN")  //bot no token
+	GuildID   = os.Getenv("GUILD_ID")   //kono guild desika ugokan w
+	ChannelID = os.Getenv("CHANNEL_ID") //kono channel desika ugokan w
 )
 
-func init() {
-	flag.Parse()
-}
-
 func main() {
-	session, err := discordgo.New("Bot " + *BotToken)
+	session, err := discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 		return
@@ -41,7 +36,7 @@ func main() {
 	}
 
 	for _, cmd := range commands {
-		session.ApplicationCommandCreate(session.State.User.ID, *GuildID, cmd)
+		session.ApplicationCommandCreate(session.State.User.ID, GuildID, cmd)
 	}
 
 	fmt.Println("Connection established.")
@@ -85,7 +80,7 @@ func checkWeekday(time time.Time) bool {
 }
 
 func joinVC(session *discordgo.Session) {
-	vc, _ := session.ChannelVoiceJoin(*GuildID, *ChannelID, false, true)
+	vc, _ := session.ChannelVoiceJoin(GuildID, ChannelID, false, true)
 	go playHotaru(session, vc)
 	fmt.Println("|_･) VC Joined.")
 }
@@ -94,9 +89,9 @@ func forceKenkou(session *discordgo.Session) bool {
 	if len(session.VoiceConnections) == 0 {
 		return false
 	}
-	members, _ := session.GuildMembers(*GuildID, "", 1000)
+	members, _ := session.GuildMembers(GuildID, "", 1000)
 	for _, member := range members {
-		session.GuildMemberMove(*GuildID, member.User.ID, nil)
+		session.GuildMemberMove(GuildID, member.User.ID, nil)
 	}
 	fmt.Println(">< All kicked.")
 	return true
