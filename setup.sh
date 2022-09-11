@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# install dependencies
+sudo apt install -y make
+
 # install docker
-echo "Installing Docker...\n"
+echo "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo apt-get install -y uidmap
@@ -9,9 +12,6 @@ dockerd-rootless-setuptool.sh install
 echo 'export PATH=/usr/bin:$PATH' > ~/.bashrc
 echo 'export DOCKER_HOST=unix:///run/user/1000/docker.sock' > ~/.bashrc
 source ~/.bashrc
-sudo setcap cap_net_bind_service=ep $HOME/bin/rootlesskit
-sudo echo 'net.ipv4.ip_unprivileged_port_start=0' > sudo /etc/sysctl.conf
-sudo sysctl --system
 
 # setting tokens
 echo -n "DISCORD_BOT_TOKEN: "
@@ -27,7 +27,7 @@ read CHANNEL_ID
 sed -i -e "/CHANNEL_ID/c CHANNEL_ID = $CHANNEL_ID" .env
 
 # setting for systemd
-echo "Setting for systemd...\n"
+echo "Setting for systemd..."
 sudo cp kenkoukun.service /etc/systemd/system/kenkoukun.service
 sudo systemctl daemon-reload
 sudo systemctl enable kenkoukun

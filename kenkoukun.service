@@ -3,7 +3,7 @@ Description = Kenkoukun.go
 
 [Service]
 WorkingDirectory=/home/ubuntu/kenkoukun
-ExecStart=make docker/start
+ExecStart=/usr/bin/make docker/start
 Restart=always
 
 [Install]
