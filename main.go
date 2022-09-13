@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -39,8 +38,8 @@ func main() {
 		session.ApplicationCommandCreate(session.State.User.ID, GuildID, cmd)
 	}
 
-	fmt.Println("Connection established.")
-	fmt.Println("Hi there :)")
+	log.Println("Connection established.")
+	log.Println("Hi there :)")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt)
@@ -49,7 +48,7 @@ loop:
 	for {
 		select {
 		case <-sc:
-			fmt.Println("interrupt. goodbye!")
+			log.Println("interrupt. goodbye!")
 			session.Close()
 			break loop
 		case <-time.After(59 * time.Second):
@@ -82,7 +81,7 @@ func checkWeekday(time time.Time) bool {
 func joinVC(session *discordgo.Session) {
 	vc, _ := session.ChannelVoiceJoin(GuildID, ChannelID, false, true)
 	go playHotaru(session, vc)
-	fmt.Println("|_･) VC Joined.")
+	log.Println("|_･) VC Joined.")
 }
 
 func forceKenkou(session *discordgo.Session) bool {
@@ -93,7 +92,7 @@ func forceKenkou(session *discordgo.Session) bool {
 	for _, member := range members {
 		session.GuildMemberMove(GuildID, member.User.ID, nil)
 	}
-	fmt.Println(">< All kicked.")
+	log.Println(">< All kicked.")
 	return true
 }
 
@@ -104,7 +103,7 @@ func playHotaru(session *discordgo.Session, vc *discordgo.VoiceConnection) {
 	dca.NewStream(encodeSession, vc, done)
 	err := <-done
 	if err != nil && err != io.EOF {
-		fmt.Println("err", err)
+		log.Println("err", err)
 	}
 	vc.Speaking(false)
 }
