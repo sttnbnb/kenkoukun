@@ -16,15 +16,15 @@ source ~/.bashrc
 # setting tokens
 echo -n "DISCORD_BOT_TOKEN: "
 read BOT_TOKEN
-sed -i -e "/BOT_TOKEN/c BOT_TOKEN = $BOT_TOKEN" .env
+sed -i -e "/BOT_TOKEN/c BOT_TOKEN=$BOT_TOKEN" .env
 
 echo -n "DISCORD_GUILD_ID: "
 read GUILD_ID
-sed -i -e "/GUILD_ID/c GUILD_ID = $GUILD_ID" .env
+sed -i -e "/GUILD_ID/c GUILD_ID=$GUILD_ID" .env
 
 echo -n "DISCORD_CHANNEL_ID: "
 read CHANNEL_ID
-sed -i -e "/CHANNEL_ID/c CHANNEL_ID = $CHANNEL_ID" .env
+sed -i -e "/CHANNEL_ID/c CHANNEL_ID=$CHANNEL_ID" .env
 
 # setting for systemd
 echo "Setting for systemd..."
