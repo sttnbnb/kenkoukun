@@ -116,8 +116,7 @@ var commands = []*discordgo.ApplicationCommand{
 }
 
 func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
-	cmd := i.ApplicationCommandData().Name
-	if cmd == "kenkou" {
+	if i.ApplicationCommandData().Name == "kenkou" {
 		go joinVC(session)
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
