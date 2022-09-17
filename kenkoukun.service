@@ -2,8 +2,9 @@
 Description = Kenkoukun.go
 
 [Service]
+User=root
 WorkingDirectory=/home/ubuntu/kenkoukun
-ExecStart=/usr/bin/make docker/start
+ExecStart=/bin/bash -c "/usr/bin/docker start kenkoukun && /usr/bin/docker logs -f kenkoukun"
 Restart=always
 
 [Install]
