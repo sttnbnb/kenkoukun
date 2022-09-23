@@ -27,6 +27,7 @@ func main() {
 	}
 
 	session.AddHandler(SlashCommandsHandler)
+	session.AddHandler(currentStatusNotification)
 
 	err = session.Open()
 	if err != nil {
@@ -136,4 +137,19 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 			}
 		}
 	}
+}
+
+func currentStatusNotification(session *discordgo.Session, m *discordgo.ChannelUpdate) {
+	channel := m.Channel
+	roles, _ := session.GuildRoles(channel.GuildID)
+
+	for _, role := range roles {
+		if role.Name == channel.Name {
+			session.ChannelMessageSend(channel.ID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
+			return
+		}
+	}
+
+	session.ChannelMessageSend(channel.ID, ":bulb: チャンネル名が「"+channel.Name+"」に変わったよ")
+	return
 }
