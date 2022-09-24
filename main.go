@@ -27,6 +27,7 @@ func main() {
 	}
 
 	session.AddHandler(SlashCommandsHandler)
+	session.AddHandler(currentStatusNotification)
 
 	err = session.Open()
 	if err != nil {
@@ -34,8 +35,13 @@ func main() {
 		return
 	}
 
-	for _, cmd := range commands {
-		session.ApplicationCommandCreate(session.State.User.ID, GuildID, cmd)
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	for i, v := range commands {
+		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, GuildID, v)
+		if err != nil {
+			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+		}
+		registeredCommands[i] = cmd
 	}
 
 	log.Println("Connection established.")
@@ -48,6 +54,12 @@ loop:
 	for {
 		select {
 		case <-sc:
+			for _, v := range registeredCommands {
+				err := session.ApplicationCommandDelete(session.State.User.ID, GuildID, v.ID)
+				if err != nil {
+					log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
+				}
+			}
 			log.Println("interrupt. goodbye!")
 			session.Close()
 			break loop
@@ -113,12 +125,36 @@ var commands = []*discordgo.ApplicationCommand{
 		Name:        "kenkou",
 		Description: "Force Kenkou",
 	},
+	{
+		Name:        "rename",
+		Description: "Rename channel name",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionRole,
+				Name:        "role",
+				Description: "role",
+				Required:    true,
+			},
+		},
+	},
+	{
+		Name:        "newname",
+		Description: "Create new channel name",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "name",
+				Description: "New channel name",
+				Required:    true,
+			},
+		},
+	},
 }
 
 func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
-	if i.ApplicationCommandData().Name == "kenkou" {
+	switch i.ApplicationCommandData().Name {
+	case "kenkou":
 		go joinVC(session)
-
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -126,7 +162,6 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 				Flags:   1 << 6,
 			},
 		})
-
 	loop:
 		for {
 			select {
@@ -135,5 +170,49 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 				break loop
 			}
 		}
+
+	case "rename":
+		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)
+		session.ChannelEdit(i.ChannelID, role.Name)
+
+		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Channel name has changed to" + role.Name,
+				Flags:   1 << 6,
+			},
+		})
+
+	case "newname":
+		name := i.ApplicationCommandData().Options[0].StringValue()
+		session.ChannelEdit(i.ChannelID, name)
+
+		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Channel name has changed to" + name,
+				Flags:   1 << 6,
+			},
+		})
 	}
+}
+
+func currentStatusNotification(session *discordgo.Session, m *discordgo.ChannelUpdate) {
+	channel := m.Channel
+	var role *discordgo.Role
+
+	guildRoles, _ := session.GuildRoles(m.GuildID)
+	for _, v := range guildRoles {
+		if v.Name == channel.Name {
+			role = v
+		}
+	}
+
+	if role == nil {
+		role, _ = session.GuildRoleCreate(m.GuildID)
+		session.GuildRoleEdit(m.GuildID, role.ID, channel.Name, 0, false, 0, true)
+	}
+
+	session.ChannelMessageSend(channel.ID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
+	return
 }
