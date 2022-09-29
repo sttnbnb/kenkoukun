@@ -7,5 +7,5 @@ RUN apk update && \
   cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
   apk del tzdata && \
   go mod download && \
-  go build -ldflags "-s -w" -o kenkoukun main.go
+  go build -ldflags "-s -w" -o kenkoukun
 CMD ["/app/kenkoukun"]
