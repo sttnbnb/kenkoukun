@@ -53,7 +53,7 @@ func slashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 	loop:
 		for {
 			select {
-			case <-time.After(10 * time.Second):
+			case <-time.After(5 * time.Minute):
 				forceKenkou(session, i.GuildID, i.ChannelID)
 				break loop
 			}
