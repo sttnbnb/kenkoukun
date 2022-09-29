@@ -18,13 +18,13 @@ echo -n "DISCORD_BOT_TOKEN: "
 read BOT_TOKEN
 sed -i -e "/BOT_TOKEN/c BOT_TOKEN=$BOT_TOKEN" .env
 
-echo -n "DISCORD_GUILD_ID: "
+echo -n "DISCORD_DEFAULT_GUILD_ID: "
 read GUILD_ID
-sed -i -e "/GUILD_ID/c GUILD_ID=$GUILD_ID" .env
+sed -i -e "/DEFAULT_GUILD_ID/c DEFAULT_GUILD_ID=$GUILD_ID" .env
 
-echo -n "DISCORD_CHANNEL_ID: "
+echo -n "DISCORD_DEFAULT_CHANNEL_ID: "
 read CHANNEL_ID
-sed -i -e "/CHANNEL_ID/c CHANNEL_ID=$CHANNEL_ID" .env
+sed -i -e "/DEFAULT_CHANNEL_ID/c DEFAULT_CHANNEL_ID=$CHANNEL_ID" .env
 
 # setting for systemd
 echo "Setting for systemd..."
