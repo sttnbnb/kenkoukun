@@ -3,10 +3,12 @@ package main
 import (
 	"time"
 
+	"github.com/shmn7iii/kenkoukun/internal"
+
 	"github.com/bwmarrin/discordgo"
 )
 
-var commands = []*discordgo.ApplicationCommand{
+var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "kenkou",
 		Description: "Force Kenkou",
@@ -37,10 +39,10 @@ var commands = []*discordgo.ApplicationCommand{
 	},
 }
 
-func slashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
+func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "kenkou":
-		go playHotaru(session, i.GuildID, i.ChannelID)
+		go internal.PlayHotaru(session, i.GuildID, i.ChannelID)
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -54,7 +56,7 @@ func slashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 		for {
 			select {
 			case <-time.After(5 * time.Minute):
-				forceKenkou(session, i.GuildID, i.ChannelID)
+				internal.ForceKenkou(session, i.GuildID, i.ChannelID)
 				break loop
 			}
 		}

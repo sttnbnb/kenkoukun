@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func currentStatusNotification(session *discordgo.Session, m *discordgo.ChannelUpdate) {
+func CurrentStatusNotification(session *discordgo.Session, m *discordgo.ChannelUpdate) {
 	channel := m.Channel
 	var role *discordgo.Role
 

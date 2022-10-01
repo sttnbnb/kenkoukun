@@ -1,6 +1,6 @@
 include .env
 
-DOCKER_FILE=./Dockerfile
+DOCKER_FILE=./build/Dockerfile
 ENV_FILE=.env
 APP_NAME=kenkoukun
 
@@ -18,7 +18,7 @@ docker/rm:
 
 docker/build:
 	go mod vendor
-	docker build -t $(APP_NAME) -f './Dockerfile' .
+	docker build -t $(APP_NAME) -f $(DOCKER_FILE) .
 
 docker/logs:
 	docker logs -f $(APP_NAME)

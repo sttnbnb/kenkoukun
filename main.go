@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/shmn7iii/kenkoukun/internal"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -22,8 +24,8 @@ func main() {
 		return
 	}
 
-	session.AddHandler(slashCommandsHandler)
-	session.AddHandler(currentStatusNotification)
+	session.AddHandler(SlashCommandsHandler)
+	session.AddHandler(internal.CurrentStatusNotification)
 
 	err = session.Open()
 	if err != nil {
@@ -31,8 +33,8 @@ func main() {
 		return
 	}
 
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
-	for i, v := range commands {
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(Commands))
+	for i, v := range Commands {
 		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
@@ -67,4 +69,17 @@ func stop(session *discordgo.Session, registeredCommands []*discordgo.Applicatio
 	}
 	log.Println("interrupt. goodbye!")
 	session.Close()
+}
+
+func kenkouBatch(session *discordgo.Session) bool {
+	nowTime := time.Now()
+	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && internal.CheckWeekday(nowTime) {
+		go internal.PlayHotaru(session, DefaultGuildID, DefaultChannelID)
+		return true
+	} else if nowTime.Hour() == 1 && nowTime.Minute() == 0 && internal.CheckWeekday(nowTime) {
+		internal.ForceKenkou(session, DefaultGuildID, DefaultChannelID)
+		return true
+	} else {
+		return false
+	}
 }
