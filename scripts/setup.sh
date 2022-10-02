@@ -7,7 +7,7 @@ sudo apt install -y make
 echo "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-sudo usermod -aG docker pi ${whoami}
+sudo usermod -aG docker pi $USER
 
 # setting tokens
 echo -n "DISCORD_BOT_TOKEN: "
@@ -24,7 +24,8 @@ sed -i -e "/DEFAULT_CHANNEL_ID/c DEFAULT_CHANNEL_ID=$CHANNEL_ID" .env
 
 # setting for systemd
 echo "Setting for systemd..."
-sudo cp ../init/kenkoukun.service /etc/systemd/system/kenkoukun.service
+sed -i -e "/WorkingDirectory/c WorkingDirectory=$HOME/kenkoukun" init/kenkoukun.service
+sudo cp init/kenkoukun.service /etc/systemd/system/kenkoukun.service
 sudo systemctl daemon-reload
 sudo systemctl enable kenkoukun
 sudo systemctl start kenkoukun
