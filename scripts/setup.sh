@@ -7,11 +7,7 @@ sudo apt install -y make
 echo "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-sudo apt-get install -y uidmap
-dockerd-rootless-setuptool.sh install
-echo 'export PATH=/usr/bin:$PATH' > ~/.bashrc
-echo 'export DOCKER_HOST=unix:///run/user/1000/docker.sock' > ~/.bashrc
-source ~/.bashrc
+sudo usermod -aG docker pi ${whoami}
 
 # setting tokens
 echo -n "DISCORD_BOT_TOKEN: "
