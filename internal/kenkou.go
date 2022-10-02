@@ -37,6 +37,17 @@ func PlayHotaru(session *discordgo.Session, guildID string, channelID string) {
 }
 
 func ForceKenkou(session *discordgo.Session, guildID string, channelID string) {
+	forceFlag := false
+	for k, v := range session.VoiceConnections {
+		if k == guildID && v.ChannelID == channelID {
+			forceFlag = true
+		}
+	}
+	if !forceFlag {
+		log.Println(">< I'm not in VC.")
+		return
+	}
+
 	guild, err := session.Guild(guildID)
 	if err != nil {
 		log.Fatalf("Can't get guild: %v", err)
