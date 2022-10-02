@@ -17,7 +17,6 @@ docker/rm:
 	docker rm -f $(APP_NAME)
 
 docker/build:
-	go mod vendor
 	docker build -t $(APP_NAME) -f $(DOCKER_FILE) .
 
 docker/logs:
