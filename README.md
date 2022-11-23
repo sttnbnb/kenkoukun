@@ -7,7 +7,7 @@
 ## Setup
 
 ```bash
-# Install make, docker and write .env, systemd service file.
+# Install make, docker and write .env
 $ bash script/setup.sh
 
 # create docker container

@@ -21,11 +21,3 @@ sed -i -e "/DEFAULT_GUILD_ID/c DEFAULT_GUILD_ID=$GUILD_ID" .env
 echo -n "DISCORD_DEFAULT_CHANNEL_ID: "
 read CHANNEL_ID
 sed -i -e "/DEFAULT_CHANNEL_ID/c DEFAULT_CHANNEL_ID=$CHANNEL_ID" .env
-
-# setting for systemd
-echo "Setting for systemd..."
-sed -i -e "/WorkingDirectory/c WorkingDirectory=$HOME/kenkoukun" init/kenkoukun.service
-sudo cp init/kenkoukun.service /etc/systemd/system/kenkoukun.service
-sudo systemctl daemon-reload
-sudo systemctl enable kenkoukun
-sudo systemctl start kenkoukun
