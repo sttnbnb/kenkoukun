@@ -7,7 +7,7 @@ sudo apt install -y make
 echo "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-sudo usermod -aG docker pi $USER
+sudo usermod -aG docker $USER
 
 # setting tokens
 echo -n "DISCORD_BOT_TOKEN: "
