@@ -9,7 +9,9 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
-# setting tokens
+# setup .env
+cp .env.sample .env
+
 echo -n "DISCORD_BOT_TOKEN: "
 read BOT_TOKEN
 sed -i -e "/BOT_TOKEN/c BOT_TOKEN=$BOT_TOKEN" .env
