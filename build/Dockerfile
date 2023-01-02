@@ -1,11 +1,14 @@
-FROM golang:1.17-alpine as builder
-COPY ./ /app/
-WORKDIR /app
-RUN apk update && \
-  apk add ffmpeg && \
-  apk --no-cache add tzdata && \
-  cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
-  apk del tzdata && \
+FROM golang:1.17-alpine AS builder
+WORKDIR /build/
+COPY ./ ./
+RUN apk --no-cache add tzdata && \
   go mod download && \
-  go build -ldflags "-s -w" -o kenkoukun
-CMD ["/app/kenkoukun"]
+  CGO_ENABLED=0 GOOS=linux go build -o kenkoukun
+
+FROM scratch
+WORKDIR /root/
+COPY ./assets ./assets
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+COPY --from=builder /build/kenkoukun ./
+CMD ["./kenkoukun"]
