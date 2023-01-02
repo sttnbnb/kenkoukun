@@ -40,7 +40,7 @@ var Commands = []*discordgo.ApplicationCommand{
 func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "kenkou":
-		go internal.PlayHotaru(session, i.GuildID, i.ChannelID)
+		go internal.ForceKenkou(session, i.GuildID, i.ChannelID)
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,

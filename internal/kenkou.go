@@ -15,51 +15,26 @@ import (
 
 var HotaruDCABuffer = make([][]byte, 0)
 
-func PlayHotaru(s *discordgo.Session, guildID, channelID string) {
+func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 	vc, err := s.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
-		log.Fatalf("Can't get guild: %v", err)
+		log.Fatalf("Can't join vc: %v", err)
 		return
 	}
-
 	log.Println("|_･) VC Joined.")
-	time.Sleep(250 * time.Millisecond)
-	vc.Speaking(true)
 
+	vc.Speaking(true)
 	for _, buff := range HotaruDCABuffer {
 		vc.OpusSend <- buff
 	}
-
 	vc.Speaking(false)
-	time.Sleep(250 * time.Millisecond)
 
-	vc.Disconnect()
-}
-
-func ForceKenkou(session *discordgo.Session, guildID string, channelID string) {
-	forceFlag := false
-	for k, v := range session.VoiceConnections {
-		if k == guildID && v.ChannelID == channelID {
-			forceFlag = true
-		}
-	}
-	if !forceFlag {
-		log.Println(">< I'm not in VC.")
-		return
-	}
-
-	guild, err := session.Guild(guildID)
-	if err != nil {
-		log.Fatalf("Can't get guild: %v", err)
-		return
-	}
-
-	members, _ := session.GuildMembers(guild.ID, "", 1000)
+	members, _ := s.GuildMembers(guildID, "", 1000)
 	for _, member := range members {
-		go session.GuildMemberMove(guild.ID, member.User.ID, nil)
+		go s.GuildMemberMove(guildID, member.User.ID, nil)
 	}
 
-	log.Println(">< All kicked.")
+	log.Println("(･_| All kicked.")
 }
 
 func CheckWeekday(time time.Time) bool {

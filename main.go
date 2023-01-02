@@ -22,7 +22,7 @@ func main() {
 
 	err = internal.LoadSound()
 	if err != nil {
-		log.Fatalf("Error loading sound: ", err)
+		log.Fatalf("Error loading sound: %v", err)
 		return
 	}
 
@@ -50,7 +50,6 @@ func main() {
 		registeredCommands[i] = cmd
 	}
 
-	log.Println("Connection established.")
 	log.Println("Hi there :)")
 
 	sc := make(chan os.Signal, 1)
@@ -79,12 +78,9 @@ func stop(session *discordgo.Session, registeredCommands []*discordgo.Applicatio
 	session.Close()
 }
 
-func kenkouBatch(session *discordgo.Session) bool {
+func kenkouBatch(session *discordgo.Session) {
 	nowTime := time.Now()
 	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && internal.CheckWeekday(nowTime) {
-		go internal.PlayHotaru(session, DefaultGuildID, DefaultChannelID)
-		return true
-	} else {
-		return false
+		go internal.ForceKenkou(session, DefaultGuildID, DefaultChannelID)
 	}
 }
