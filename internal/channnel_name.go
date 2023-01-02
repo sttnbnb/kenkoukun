@@ -24,5 +24,4 @@ func CurrentStatusNotification(session *discordgo.Session, m *discordgo.ChannelU
 
 	session.ChannelMessageSend(channel.ID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
 	log.Println("^^ Channel name has changed to " + role.Name)
-	return
 }
