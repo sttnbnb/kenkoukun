@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/shmn7iii/kenkoukun/internal"
 
 	"github.com/bwmarrin/discordgo"
@@ -51,15 +49,6 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 				Flags:   1 << 6,
 			},
 		})
-
-	loop:
-		for {
-			select {
-			case <-time.After(5 * time.Minute):
-				internal.ForceKenkou(session, i.GuildID, i.ChannelID)
-				break loop
-			}
-		}
 
 	case "rename":
 		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)

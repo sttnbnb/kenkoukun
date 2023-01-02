@@ -1,39 +1,39 @@
 package internal
 
 import (
+	"encoding/binary"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/jonas747/dca"
 )
 
-func PlayHotaru(session *discordgo.Session, guildID string, channelID string) {
-	vc, err := session.ChannelVoiceJoin(guildID, channelID, false, true)
+var HotaruDCABuffer = make([][]byte, 0)
+
+func PlayHotaru(s *discordgo.Session, guildID, channelID string) {
+	vc, err := s.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
-		log.Fatalf("Can't join vc: %v", err)
+		log.Fatalf("Can't get guild: %v", err)
+		return
 	}
+
 	log.Println("|_･) VC Joined.")
-
-	encodeSession, err := dca.EncodeFile("./assets/hotaru.mp3", dca.StdEncodeOptions)
-	if err != nil {
-		log.Fatalf("Can't encode music: %v", err)
-	}
-
+	time.Sleep(250 * time.Millisecond)
 	vc.Speaking(true)
 
-	done := make(chan error)
-	dca.NewStream(encodeSession, vc, done)
-
-	err = <-done
-	if err != nil && err != io.EOF {
-		log.Println("err", err)
+	for _, buff := range HotaruDCABuffer {
+		vc.OpusSend <- buff
 	}
 
 	vc.Speaking(false)
+	time.Sleep(250 * time.Millisecond)
+
+	vc.Disconnect()
 }
 
 func ForceKenkou(session *discordgo.Session, guildID string, channelID string) {
@@ -60,7 +60,6 @@ func ForceKenkou(session *discordgo.Session, guildID string, channelID string) {
 	}
 
 	log.Println(">< All kicked.")
-	return
 }
 
 func CheckWeekday(time time.Time) bool {
@@ -69,4 +68,41 @@ func CheckWeekday(time time.Time) bool {
 	defer resp.Body.Close()
 	byteArray, _ := ioutil.ReadAll(resp.Body)
 	return string(byteArray) == "else"
+}
+
+func LoadSound() error {
+	file, err := os.Open("assets/hotaru.dca")
+	if err != nil {
+		fmt.Println("Error opening dca file :", err)
+		return err
+	}
+
+	var opuslen int16
+
+	for {
+		err = binary.Read(file, binary.LittleEndian, &opuslen)
+
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			err := file.Close()
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+		if err != nil {
+			fmt.Println("Error reading from dca file :", err)
+			return err
+		}
+
+		InBuf := make([]byte, opuslen)
+		err = binary.Read(file, binary.LittleEndian, &InBuf)
+
+		if err != nil {
+			fmt.Println("Error reading from dca file :", err)
+			return err
+		}
+
+		HotaruDCABuffer = append(HotaruDCABuffer, InBuf)
+	}
 }

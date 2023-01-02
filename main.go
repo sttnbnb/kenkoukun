@@ -18,6 +18,14 @@ var (
 )
 
 func main() {
+	var err error
+
+	err = internal.LoadSound()
+	if err != nil {
+		log.Fatalf("Error loading sound: ", err)
+		return
+	}
+
 	session, err := discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
@@ -75,9 +83,6 @@ func kenkouBatch(session *discordgo.Session) bool {
 	nowTime := time.Now()
 	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && internal.CheckWeekday(nowTime) {
 		go internal.PlayHotaru(session, DefaultGuildID, DefaultChannelID)
-		return true
-	} else if nowTime.Hour() == 1 && nowTime.Minute() == 0 && internal.CheckWeekday(nowTime) {
-		internal.ForceKenkou(session, DefaultGuildID, DefaultChannelID)
 		return true
 	} else {
 		return false
