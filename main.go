@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal"
+	"github.com/shmn7iii/kenkoukun/internal/channel"
+	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -20,7 +22,7 @@ var (
 func main() {
 	var err error
 
-	err = internal.LoadSound()
+	err = kenkou.LoadSound()
 	if err != nil {
 		log.Fatalf("Error loading sound: %v", err)
 		return
@@ -32,8 +34,8 @@ func main() {
 		return
 	}
 
-	session.AddHandler(SlashCommandsHandler)
-	session.AddHandler(internal.CurrentStatusNotification)
+	session.AddHandler(internal.SlashCommandsHandler)
+	session.AddHandler(channel.ChannelUpdateHandler)
 
 	err = session.Open()
 	if err != nil {
@@ -41,8 +43,8 @@ func main() {
 		return
 	}
 
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(Commands))
-	for i, v := range Commands {
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(internal.Commands))
+	for i, v := range internal.Commands {
 		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
@@ -62,7 +64,7 @@ loop:
 			stop(session, registeredCommands)
 			break loop
 		case <-time.After(59 * time.Second):
-			kenkouBatch(session)
+			kenkou.KenkouBatch(session, DefaultGuildID, DefaultChannelID)
 		}
 	}
 }
@@ -76,11 +78,4 @@ func stop(session *discordgo.Session, registeredCommands []*discordgo.Applicatio
 	}
 	log.Println("interrupt. goodbye!")
 	session.Close()
-}
-
-func kenkouBatch(session *discordgo.Session) {
-	nowTime := time.Now()
-	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && internal.CheckWeekday(nowTime) {
-		go internal.ForceKenkou(session, DefaultGuildID, DefaultChannelID)
-	}
 }

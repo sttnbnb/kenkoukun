@@ -1,7 +1,7 @@
-package main
+package internal
 
 import (
-	"github.com/shmn7iii/kenkoukun/internal"
+	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,7 +18,7 @@ var Commands = []*discordgo.ApplicationCommand{
 			{
 				Type:        discordgo.ApplicationCommandOptionRole,
 				Name:        "role",
-				Description: "role",
+				Description: "Role name",
 				Required:    true,
 			},
 		},
@@ -40,7 +40,7 @@ var Commands = []*discordgo.ApplicationCommand{
 func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "kenkou":
-		go internal.ForceKenkou(session, i.GuildID, i.ChannelID)
+		go kenkou.ForceKenkou(session, i.GuildID, i.ChannelID)
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -57,7 +57,7 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Channel name has changed to" + role.Name,
+				Content: "Channel name has changed to " + role.Name,
 				Flags:   1 << 6,
 			},
 		})
@@ -69,7 +69,7 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Channel name has changed to" + name,
+				Content: "New role has created and channel name has changed to " + name,
 				Flags:   1 << 6,
 			},
 		})
