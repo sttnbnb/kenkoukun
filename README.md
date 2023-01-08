@@ -6,6 +6,9 @@
 
 ## Setup
 
+> **Note**  
+> BOT requires `SERVER MEMBERS INTENT`.
+
 ```bash
 # Install make, docker and write .env
 $ bash script/setup.sh
