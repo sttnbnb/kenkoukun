@@ -18,8 +18,9 @@ func ChannelUpdateHandler(session *discordgo.Session, m *discordgo.ChannelUpdate
 	}
 
 	if role == nil {
-		role, _ = session.GuildRoleCreate(m.GuildID)
-		session.GuildRoleEdit(m.GuildID, role.ID, channel.Name, 0, false, 0, true)
+		role, _ = session.GuildRoleCreate(m.GuildID, &discordgo.RoleParams{
+			Name: channel.Name,
+		})
 	}
 
 	session.ChannelMessageSend(channel.ID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")

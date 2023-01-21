@@ -52,7 +52,9 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 
 	case "rename":
 		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)
-		session.ChannelEdit(i.ChannelID, role.Name)
+		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
+			Name: role.Name,
+		})
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -64,7 +66,9 @@ func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCr
 
 	case "newname":
 		name := i.ApplicationCommandData().Options[0].StringValue()
-		session.ChannelEdit(i.ChannelID, name)
+		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
+			Name: name,
+		})
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
