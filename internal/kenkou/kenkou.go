@@ -2,6 +2,7 @@ package kenkou
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -17,6 +18,11 @@ func KenkouBatch(session *discordgo.Session, guildID string, channelID string) {
 }
 
 func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
+	channel, _ := s.Channel(channelID)
+	if channel.Type != 2 { // is not ChannelTypeGuildVoice
+		channelID = os.Getenv("DEFAULT_CHANNEL_ID")
+	}
+
 	vc, err := s.ChannelVoiceJoin(guildID, channelID, false, true)
 	if err != nil {
 		log.Fatalf("Can't join vc: %v", err)
