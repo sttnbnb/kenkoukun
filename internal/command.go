@@ -37,7 +37,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 }
 
-func SlashCommandsHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
+func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "kenkou":
 		go kenkou.ForceKenkou(session, i.GuildID, i.ChannelID)
