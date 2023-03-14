@@ -35,8 +35,8 @@ func main() {
 		return
 	}
 
-	session.AddHandler(internal.SlashCommandsHandler)
-	session.AddHandler(channel.ChannelUpdateHandler)
+	session.AddHandler(internal.SlashCommandHandler)
+	session.AddHandler(channel.ChannelUpdateEventHandler)
 	session.AddHandler(chatgpt.MessageCreateEventHandler)
 
 	err = session.Open()
