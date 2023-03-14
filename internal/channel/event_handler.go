@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func ChannelUpdateHandler(session *discordgo.Session, m *discordgo.ChannelUpdate) {
+func ChannelUpdateEventHandler(session *discordgo.Session, m *discordgo.ChannelUpdate) {
 	channel := m.Channel
 	var role *discordgo.Role
 
