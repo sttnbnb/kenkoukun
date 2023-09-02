@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal"
-	"github.com/shmn7iii/kenkoukun/internal/channel"
 	"github.com/shmn7iii/kenkoukun/internal/chatgpt"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
@@ -36,7 +35,6 @@ func main() {
 	}
 
 	session.AddHandler(internal.SlashCommandHandler)
-	session.AddHandler(channel.ChannelUpdateEventHandler)
 	session.AddHandler(chatgpt.MessageCreateEventHandler)
 
 	err = session.Open()

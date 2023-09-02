@@ -56,6 +56,8 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 			Name: role.Name,
 		})
 
+		session.ChannelMessageSend(i.ChannelID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
+
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -69,6 +71,12 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
 			Name: name,
 		})
+
+		role, _ := session.GuildRoleCreate(i.GuildID, &discordgo.RoleParams{
+			Name: name,
+		})
+
+		session.ChannelMessageSend(i.ChannelID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
