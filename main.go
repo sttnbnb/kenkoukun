@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal"
-	"github.com/shmn7iii/kenkoukun/internal/chatgpt"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
@@ -35,7 +34,6 @@ func main() {
 	}
 
 	session.AddHandler(internal.SlashCommandHandler)
-	session.AddHandler(chatgpt.MessageCreateEventHandler)
 
 	err = session.Open()
 	if err != nil {
