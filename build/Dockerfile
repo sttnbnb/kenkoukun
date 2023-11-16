@@ -9,8 +9,8 @@ WORKDIR /build/
 COPY ./ ./
 
 RUN apk --no-cache add tzdata gcc musl-dev && \
-    go mod download && \
-    go install -ldflags='-s -w -extldflags "-static"' ./main.go
+    go mod tidy && \
+    go build -ldflags='-s -w -extldflags "-static"' -o main
 
 # -----------------------------------------------------------------------------
 #  Main Stage
@@ -23,6 +23,6 @@ COPY ./assets ./assets
 COPY ./db ./db
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-COPY --from=builder /go/bin/main ./
+COPY --from=builder /build/main ./
 
 CMD ["./main"]
