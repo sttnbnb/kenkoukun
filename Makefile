@@ -16,6 +16,10 @@ docker/stop:
 docker/rm:
 	docker rm -f $(APP_NAME)
 
+docker/reset:
+	docker rm -f $(APP_NAME)
+	docker volume rm -f kenkoudata
+
 docker/build:
 	docker build -t $(APP_NAME) -f $(DOCKER_FILE) .
 
