@@ -1,6 +1,9 @@
 package internal
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
@@ -70,7 +73,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 		guildId := i.GuildID
 		channel, _ := session.Channel(i.ChannelID)
 		if channel.Type != 2 { // is not ChannelTypeGuildVoice
-			channelId, err := kenkou.GetGuildKenkouSetting(guildId)
+			setting, err := kenkou.GetGuildKenkouSetting(guildId)
 			if err != nil {
 				session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -82,7 +85,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 
 				return
 			}
-			channel, _ = session.Channel(channelId)
+			channel, _ = session.Channel(setting.ChannelId)
 		}
 		go kenkou.ForceKenkou(session, guildId, channel.ID)
 
@@ -103,14 +106,20 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 
 			if len(subcommand.Options) == 0 {
 				// 指定がない場合は現在のチャンネルを返す
-				channelId, err := kenkou.GetGuildKenkouSetting(guildId)
-				content = "Current kenkou channel is <#" + channelId + ">"
+				setting, err := kenkou.GetGuildKenkouSetting(guildId)
+				content = "Current kenkou channel is <#" + setting.ChannelId + ">"
 				if err != nil {
-					content = "Kenkou channel is not set.\nPlease use `/setting update-kenkou-channel` command to set channel."
+					content = "Kenkou channel is not set.\nPlease use `/setting channel <channel>` command to set channel."
 				}
 			} else {
 				channel := subcommand.Options[0].ChannelValue(session)
-				kenkou.UpdateGuildKenkouSetting(guildId, channel.ID)
+				oldSetting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				setting := kenkou.KenkouSetting{
+					GuildId:   guildId,
+					ChannelId: channel.ID,
+					Time:      oldSetting.Time,
+				}
+				kenkou.UpdateGuildKenkouSetting(setting)
 				content = "Current kenkou channel is <#" + channel.ID + ">"
 			}
 
