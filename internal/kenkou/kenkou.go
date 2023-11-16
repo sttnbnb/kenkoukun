@@ -10,10 +10,16 @@ import (
 
 var HotaruDCABuffer = make([][]byte, 0)
 
-func KenkouBatch(session *discordgo.Session, guildID string, channelID string) {
+func KenkouBatch(session *discordgo.Session) {
 	nowTime := time.Now()
 	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && checkWeekday(nowTime) {
-		go ForceKenkou(session, guildID, channelID)
+		kenkouSettings, err := GetKenkouSettings()
+		if err != nil {
+			return
+		}
+		for _, setting := range kenkouSettings {
+			go ForceKenkou(session, setting.GuildId, setting.ChannelId)
+		}
 	}
 }
 

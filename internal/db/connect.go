@@ -14,3 +14,15 @@ func Connect() *sql.DB {
 	return dbc
 }
 
+func CreateTables(dbc *sql.DB) {
+	cmd := `
+		CREATE TABLE IF NOT EXISTS kenkou_settings(
+			guild_id string not null primary key,
+			channel_id string not null
+		)
+	`
+	_, err := dbc.Exec(cmd)
+	if err != nil {
+		log.Fatal(err)
+	}
+}

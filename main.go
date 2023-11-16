@@ -7,40 +7,49 @@ import (
 	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal"
+	"github.com/shmn7iii/kenkoukun/internal/db"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
-	BotToken         = os.Getenv("BOT_TOKEN")          //bot no token
-	DefaultGuildID   = os.Getenv("DEFAULT_GUILD_ID")   //teizi kenkou guild
-	DefaultChannelID = os.Getenv("DEFAULT_CHANNEL_ID") //teizi kenkou channel
+	BotToken = os.Getenv("BOT_TOKEN") //bot no token
 )
 
 func main() {
 	var err error
 
+	// Prepare Horaru sounds
 	err = kenkou.LoadSound()
 	if err != nil {
 		log.Fatalf("Error loading sound: %v", err)
 		return
 	}
 
+	// Prepare database
+	dbc := db.Connect()
+	defer dbc.Close()
+	db.CreateTables(dbc)
+
+	// Prepare Discord session
 	session, err := discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 		return
 	}
 
+	// Add command handler
 	session.AddHandler(internal.SlashCommandHandler)
 
+	// Open Discord session
 	err = session.Open()
 	if err != nil {
 		log.Fatalf("Error opening connection: %v", err)
 		return
 	}
 
+	// Register commands
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(internal.Commands))
 	for i, v := range internal.Commands {
 		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
@@ -62,7 +71,7 @@ loop:
 			stop(session, registeredCommands)
 			break loop
 		case <-time.After(59 * time.Second):
-			kenkou.KenkouBatch(session, DefaultGuildID, DefaultChannelID)
+			kenkou.KenkouBatch(session)
 		}
 	}
 }
