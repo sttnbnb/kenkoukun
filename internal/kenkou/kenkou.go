@@ -12,12 +12,15 @@ var HotaruDCABuffer = make([][]byte, 0)
 
 func KenkouBatch(session *discordgo.Session) {
 	nowTime := time.Now()
-	if nowTime.Hour() == 0 && nowTime.Minute() == 55 && checkWeekday(nowTime) {
-		kenkouSettings, err := GetKenkouSettings()
-		if err != nil {
-			return
-		}
-		for _, setting := range kenkouSettings {
+	if !checkWeekday(nowTime) {
+		return
+	}
+	kenkouSettings, _ := GetKenkouSettings()
+	for _, setting := range kenkouSettings {
+		kenkouTime := setting.Time
+		kenkouTime = kenkouTime.Add(time.Minute * -5)
+		// MEMO: UTCとJSTごっちゃだけどなんか動くのでヨシッ！
+		if nowTime.Hour() == kenkouTime.Hour() && nowTime.Minute() == kenkouTime.Minute() {
 			go ForceKenkou(session, setting.GuildId, setting.ChannelId)
 		}
 	}

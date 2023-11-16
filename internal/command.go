@@ -1,8 +1,7 @@
 package internal
 
 import (
-	"fmt"
-	"strings"
+	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
@@ -31,6 +30,19 @@ var Commands = []*discordgo.ApplicationCommand{
 							discordgo.ChannelTypeGuildVoice,
 						},
 						Required: false,
+					},
+				},
+			},
+			{
+				Name:        "time",
+				Description: "Configure kenkou time. If not specified, returns the current time.",
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "time",
+						Description: "Must be like 01:00",
+						Required:    false,
 					},
 				},
 			},
@@ -106,19 +118,16 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 
 			if len(subcommand.Options) == 0 {
 				// 指定がない場合は現在のチャンネルを返す
-				setting, err := kenkou.GetGuildKenkouSetting(guildId)
-				content = "Current kenkou channel is <#" + setting.ChannelId + ">"
-				if err != nil {
+				setting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				if setting.ChannelId == "" {
 					content = "Kenkou channel is not set.\nPlease use `/setting channel <channel>` command to set channel."
+				} else {
+					content = "Current kenkou channel is <#" + setting.ChannelId + ">"
 				}
 			} else {
 				channel := subcommand.Options[0].ChannelValue(session)
 				oldSetting, _ := kenkou.GetGuildKenkouSetting(guildId)
-				setting := kenkou.KenkouSetting{
-					GuildId:   guildId,
-					ChannelId: channel.ID,
-					Time:      oldSetting.Time,
-				}
+				setting := kenkou.NewKenkouSetting(guildId, channel.ID, oldSetting.Time)
 				kenkou.UpdateGuildKenkouSetting(setting)
 				content = "Current kenkou channel is <#" + channel.ID + ">"
 			}
@@ -131,12 +140,42 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				},
 			})
 
+		case "time":
+			guildId := i.GuildID
+			content := ""
+			if len(subcommand.Options) == 0 {
+				// 指定がない場合は現在の設定時刻を返す
+				setting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				if setting.Time.Unix() == -62135596800 { // 中身ないとこれ
+					content = "Kenkou time is not set.\nPlease use `/setting time <01:00>` command to set time."
+				} else {
+					content = "Current kenkou time is " + setting.Time.Format("15:04")
+				}
+			} else {
+				timeString := subcommand.Options[0].StringValue()
+				oldSetting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				time, _ := time.Parse(time.TimeOnly, timeString+":00")
+				setting := kenkou.NewKenkouSetting(guildId, oldSetting.ChannelId, time)
+				kenkou.UpdateGuildKenkouSetting(setting)
+				content = "Current kenkou time is " + setting.Time.Format("15:04")
+			}
+
+			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: content,
+					Flags:   1 << 6,
+				},
+			})
+
 		case "dump-all-kenkou-settings":
 			KenkouSettings, _ := kenkou.GetKenkouSettings()
-			content := "Kenkou settings:"
+			content := "**Kenkou settings**"
+			content = content + "\n```     Guild ID     :  Kenkou Channel ID / TIME "
 			for _, setting := range KenkouSettings {
-				content = content + "\n  " + setting.GuildId + ": " + setting.ChannelId
+				content = content + "\n" + setting.GuildId + ": " + setting.ChannelId + " / " + setting.Time.Format("15:04")
 			}
+			content = content + "```"
 
 			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,

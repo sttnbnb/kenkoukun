@@ -19,8 +19,9 @@ func Connect() *sql.DB {
 func CreateTables(dbc *sql.DB) {
 	cmd := `
 		CREATE TABLE IF NOT EXISTS kenkou_settings(
-			guild_id string not null primary key,
-			channel_id string not null
+			guild_id STRING NOT NULL PRIMARY KEY,
+			channel_id STRING,
+			time TIMESTAMP NOT NULL
 		)
 	`
 	_, err := dbc.Exec(cmd)
