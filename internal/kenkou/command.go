@@ -1,9 +1,7 @@
-package internal
+package kenkou
 
 import (
 	"time"
-
-	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -53,30 +51,6 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
-	{
-		Name:        "rename",
-		Description: "Rename channel name",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionRole,
-				Name:        "role",
-				Description: "Role name",
-				Required:    true,
-			},
-		},
-	},
-	{
-		Name:        "newname",
-		Description: "Create new channel name",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "name",
-				Description: "New channel name",
-				Required:    true,
-			},
-		},
-	},
 }
 
 func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -85,7 +59,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 		guildId := i.GuildID
 		channel, _ := session.Channel(i.ChannelID)
 		if channel.Type != 2 { // is not ChannelTypeGuildVoice
-			setting, err := kenkou.GetGuildKenkouSetting(guildId)
+			setting, err := GetGuildKenkouSetting(guildId)
 			if err != nil {
 				session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -99,7 +73,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 			}
 			channel, _ = session.Channel(setting.ChannelId)
 		}
-		go kenkou.ForceKenkou(session, guildId, channel.ID)
+		go ForceKenkou(session, guildId, channel.ID)
 
 		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -118,7 +92,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 
 			if len(subcommand.Options) == 0 {
 				// 指定がない場合は現在のチャンネルを返す
-				setting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				setting, _ := GetGuildKenkouSetting(guildId)
 				if setting.ChannelId == "" {
 					content = "Kenkou channel is not set.\nPlease use `/setting channel <channel>` command to set channel."
 				} else {
@@ -126,9 +100,9 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				}
 			} else {
 				channel := subcommand.Options[0].ChannelValue(session)
-				oldSetting, _ := kenkou.GetGuildKenkouSetting(guildId)
-				setting := kenkou.NewKenkouSetting(guildId, channel.ID, oldSetting.Time)
-				kenkou.UpdateGuildKenkouSetting(setting)
+				oldSetting, _ := GetGuildKenkouSetting(guildId)
+				setting := NewKenkouSetting(guildId, channel.ID, oldSetting.Time)
+				UpdateGuildKenkouSetting(setting)
 				content = "Current kenkou channel is <#" + channel.ID + ">"
 			}
 
@@ -145,7 +119,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 			content := ""
 			if len(subcommand.Options) == 0 {
 				// 指定がない場合は現在の設定時刻を返す
-				setting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				setting, _ := GetGuildKenkouSetting(guildId)
 				if setting.Time.Unix() == -62135596800 { // 中身ないとこれ
 					content = "Kenkou time is not set.\nPlease use `/setting time <01:00>` command to set time."
 				} else {
@@ -153,10 +127,10 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				}
 			} else {
 				timeString := subcommand.Options[0].StringValue()
-				oldSetting, _ := kenkou.GetGuildKenkouSetting(guildId)
+				oldSetting, _ := GetGuildKenkouSetting(guildId)
 				time, _ := time.Parse(time.TimeOnly, timeString+":00")
-				setting := kenkou.NewKenkouSetting(guildId, oldSetting.ChannelId, time)
-				kenkou.UpdateGuildKenkouSetting(setting)
+				setting := NewKenkouSetting(guildId, oldSetting.ChannelId, time)
+				UpdateGuildKenkouSetting(setting)
 				content = "Current kenkou time is " + setting.Time.Format("15:04")
 			}
 
@@ -169,7 +143,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 			})
 
 		case "dump-all-kenkou-settings":
-			KenkouSettings, _ := kenkou.GetKenkouSettings()
+			KenkouSettings, _ := GetKenkouSettings()
 			content := "**Kenkou settings**"
 			content = content + "\n```     Guild ID     :  Kenkou Channel ID / TIME "
 			for _, setting := range KenkouSettings {
@@ -185,41 +159,5 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				},
 			})
 		}
-
-	case "rename":
-		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)
-		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
-			Name: role.Name,
-		})
-
-		session.ChannelMessageSend(i.ChannelID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
-
-		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Channel name has changed to " + role.Name,
-				Flags:   1 << 6,
-			},
-		})
-
-	case "newname":
-		name := i.ApplicationCommandData().Options[0].StringValue()
-		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
-			Name: name,
-		})
-
-		role, _ := session.GuildRoleCreate(i.GuildID, &discordgo.RoleParams{
-			Name: name,
-		})
-
-		session.ChannelMessageSend(i.ChannelID, ":bulb: チャンネル名が「"+role.Mention()+"」に変わったよ")
-
-		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "New role has created and channel name has changed to " + name,
-				Flags:   1 << 6,
-			},
-		})
 	}
 }

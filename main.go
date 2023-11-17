@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/shmn7iii/kenkoukun/internal"
+	"github.com/shmn7iii/kenkoukun/internal/channame"
 	"github.com/shmn7iii/kenkoukun/internal/db"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
@@ -40,7 +40,8 @@ func main() {
 	}
 
 	// Add command handler
-	session.AddHandler(internal.SlashCommandHandler)
+	session.AddHandler(kenkou.SlashCommandHandler)
+	session.AddHandler(channame.SlashCommandHandler)
 
 	// Open Discord session
 	err = session.Open()
@@ -50,8 +51,11 @@ func main() {
 	}
 
 	// Register commands
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(internal.Commands))
-	for i, v := range internal.Commands {
+	var commands []*discordgo.ApplicationCommand
+	commands = append(commands, channame.Commands...)
+	commands = append(commands, kenkou.Commands...)
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	for i, v := range commands {
 		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
