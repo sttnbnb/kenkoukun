@@ -17,11 +17,15 @@ func KenkouBatch(session *discordgo.Session) {
 	}
 	kenkouSettings, _ := GetKenkouSettings()
 	for _, setting := range kenkouSettings {
+		if setting.ChannelId == nil {
+			continue
+		}
+
 		kenkouTime := setting.Time
 		kenkouTime = kenkouTime.Add(time.Minute * -5)
 		// MEMO: UTCとJSTごっちゃだけどなんか動くのでヨシッ！
 		if nowTime.Hour() == kenkouTime.Hour() && nowTime.Minute() == kenkouTime.Minute() {
-			go ForceKenkou(session, setting.GuildId, setting.ChannelId)
+			go ForceKenkou(session, setting.GuildId, *setting.ChannelId)
 		}
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/shmn7iii/kenkoukun/internal/channame"
-	"github.com/shmn7iii/kenkoukun/internal/db"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
@@ -26,11 +25,6 @@ func main() {
 		log.Fatalf("Error loading sound: %v", err)
 		return
 	}
-
-	// Prepare database
-	dbc := db.Connect()
-	defer dbc.Close()
-	db.CreateTables(dbc)
 
 	// Prepare Discord session
 	session, err := discordgo.New("Bot " + BotToken)
@@ -63,7 +57,7 @@ func main() {
 		registeredCommands[i] = cmd
 	}
 
-	log.Println("Hi there :)")
+	log.Println("Ready to start. <Hi there :)")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt)
