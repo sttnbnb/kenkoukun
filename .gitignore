@@ -7,3 +7,5 @@
 *.out
 vendor/
 .env
+/db/*
+!/db/.keep

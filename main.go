@@ -6,43 +6,50 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/shmn7iii/kenkoukun/internal"
+	"github.com/shmn7iii/kenkoukun/internal/channame"
 	"github.com/shmn7iii/kenkoukun/internal/kenkou"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
-	BotToken         = os.Getenv("BOT_TOKEN")          //bot no token
-	DefaultGuildID   = os.Getenv("DEFAULT_GUILD_ID")   //teizi kenkou guild
-	DefaultChannelID = os.Getenv("DEFAULT_CHANNEL_ID") //teizi kenkou channel
+	BotToken = os.Getenv("BOT_TOKEN") //bot no token
 )
 
 func main() {
 	var err error
 
+	// Prepare Horaru sounds
 	err = kenkou.LoadSound()
 	if err != nil {
 		log.Fatalf("Error loading sound: %v", err)
 		return
 	}
 
+	// Prepare Discord session
 	session, err := discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 		return
 	}
 
-	session.AddHandler(internal.SlashCommandHandler)
+	// Add command handler
+	session.AddHandler(kenkou.SlashCommandHandler)
+	session.AddHandler(channame.SlashCommandHandler)
 
+	// Open Discord session
 	err = session.Open()
 	if err != nil {
 		log.Fatalf("Error opening connection: %v", err)
 		return
 	}
 
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(internal.Commands))
-	for i, v := range internal.Commands {
+	// Register commands
+	var commands []*discordgo.ApplicationCommand
+	commands = append(commands, channame.Commands...)
+	commands = append(commands, kenkou.Commands...)
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	for i, v := range commands {
 		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
@@ -50,7 +57,7 @@ func main() {
 		registeredCommands[i] = cmd
 	}
 
-	log.Println("Hi there :)")
+	log.Println("Ready to start. <Hi there :)")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt)
@@ -62,7 +69,7 @@ loop:
 			stop(session, registeredCommands)
 			break loop
 		case <-time.After(59 * time.Second):
-			kenkou.KenkouBatch(session, DefaultGuildID, DefaultChannelID)
+			kenkou.KenkouBatch(session)
 		}
 	}
 }

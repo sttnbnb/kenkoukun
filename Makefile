@@ -5,7 +5,7 @@ ENV_FILE=.env
 APP_NAME=kenkoukun
 
 docker/run: docker/rm docker/build
-	docker run -d --name $(APP_NAME) --env-file=$(ENV_FILE) --restart=always $(APP_NAME):latest
+	docker run -d --name $(APP_NAME) --env-file=$(ENV_FILE) --restart=always -v kenkoudata:/kenkoukun/db/ $(APP_NAME):latest
 
 docker/start:
 	docker start $(APP_NAME)
@@ -15,6 +15,10 @@ docker/stop:
 
 docker/rm:
 	docker rm -f $(APP_NAME)
+
+docker/reset:
+	docker rm -f $(APP_NAME)
+	docker volume rm -f kenkoudata
 
 docker/build:
 	docker build -t $(APP_NAME) -f $(DOCKER_FILE) .

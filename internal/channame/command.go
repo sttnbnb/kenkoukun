@@ -1,16 +1,10 @@
-package internal
+package channame
 
 import (
-	"github.com/shmn7iii/kenkoukun/internal/kenkou"
-
 	"github.com/bwmarrin/discordgo"
 )
 
 var Commands = []*discordgo.ApplicationCommand{
-	{
-		Name:        "kenkou",
-		Description: "Force Kenkou",
-	},
 	{
 		Name:        "rename",
 		Description: "Rename channel name",
@@ -39,17 +33,6 @@ var Commands = []*discordgo.ApplicationCommand{
 
 func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
-	case "kenkou":
-		go kenkou.ForceKenkou(session, i.GuildID, i.ChannelID)
-
-		session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Let's Kenkou!",
-				Flags:   1 << 6,
-			},
-		})
-
 	case "rename":
 		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)
 		session.ChannelEdit(i.ChannelID, &discordgo.ChannelEdit{
