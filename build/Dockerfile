@@ -4,11 +4,13 @@
 FROM golang:1.20-alpine AS builder
 
 ENV CGO_ENABLED=1
-
 WORKDIR /build/
+
+RUN apk --no-cache add tzdata gcc musl-dev
+
 COPY ./ ./
 
-RUN apk --no-cache add tzdata gcc musl-dev && \
+RUN \
     go mod tidy && \
     go build -ldflags='-s -w -extldflags "-static"' -o main
 
