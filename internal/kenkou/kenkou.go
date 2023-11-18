@@ -15,6 +15,7 @@ func KenkouBatch(session *discordgo.Session) {
 	if !checkWeekday(nowTime) {
 		return
 	}
+
 	kenkouSettings, _ := GetKenkouSettings()
 	for _, setting := range kenkouSettings {
 		if setting.ChannelId == nil {
@@ -41,7 +42,8 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 		log.Fatalf("Can't join vc: %v", err)
 		return
 	}
-	log.Println("|_･) VC Joined.")
+	log.Println("|_･) Start playing Hotaru.")
+	log.Println("     Guild: " + guildID + "Channel: " + channelID)
 
 	vc.Speaking(true)
 	for _, buff := range HotaruDCABuffer {
@@ -49,10 +51,16 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 	}
 	vc.Speaking(false)
 
+	log.Println("     Finish playing.")
+
+	// TODO: ギルドメンバー全員拾ってるけどVCにいる人だけでいいよね
 	members, _ := s.GuildMembers(guildID, "", 1000)
 	for _, member := range members {
-		go s.GuildMemberMove(guildID, member.User.ID, nil)
+		go func() {
+			s.GuildMemberMove(guildID, member.User.ID, nil)
+			log.Println("     Member kicked: " + member.User.ID)
+		}()
 	}
 
-	log.Println("(･_| All kicked.")
+	log.Println("     All done.")
 }

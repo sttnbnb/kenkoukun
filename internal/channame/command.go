@@ -31,7 +31,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 }
 
-func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
+func CommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "rename":
 		role := i.ApplicationCommandData().Options[0].RoleValue(session, i.GuildID)

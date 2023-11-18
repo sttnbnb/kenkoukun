@@ -34,8 +34,8 @@ func main() {
 	}
 
 	// Add command handler
-	session.AddHandler(kenkou.SlashCommandHandler)
-	session.AddHandler(channame.SlashCommandHandler)
+	session.AddHandler(kenkou.CommandHandler)
+	session.AddHandler(channame.CommandHandler)
 
 	// Open Discord session
 	err = session.Open()

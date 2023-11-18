@@ -21,8 +21,9 @@ func init() {
 	}
 }
 
-func UpdateGuildKenkouSetting(newSetting KenkouSetting) {
+func SaveGuildKenkouSetting(newSetting KenkouSetting) {
 	var setting KenkouSetting
+	// UPSERT
 	database.Db.Where(KenkouSetting{GuildId: newSetting.GuildId}).Assign(newSetting).FirstOrCreate(&setting)
 }
 

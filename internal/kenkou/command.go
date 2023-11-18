@@ -54,7 +54,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 }
 
-func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
+func CommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "kenkou":
 		guildId := i.GuildID
@@ -104,7 +104,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				newChannelId := newChannel.ID
 				setting, _ := GetGuildKenkouSetting(guildId)
 				setting.ChannelId = &newChannelId
-				UpdateGuildKenkouSetting(setting)
+				SaveGuildKenkouSetting(setting)
 				content = "Current kenkou channel is <#" + *setting.ChannelId + ">"
 			}
 
@@ -128,7 +128,7 @@ func SlashCommandHandler(session *discordgo.Session, i *discordgo.InteractionCre
 				newTime, _ := time.Parse(time.TimeOnly, newTimeString+":00")
 				setting, _ := GetGuildKenkouSetting(guildId)
 				setting.Time = newTime
-				UpdateGuildKenkouSetting(setting)
+				SaveGuildKenkouSetting(setting)
 				content = "Current kenkou time is " + setting.Time.Format("15:04")
 			}
 
