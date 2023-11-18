@@ -1,7 +1,6 @@
 package kenkou
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -17,62 +16,46 @@ var Commands = []*discordgo.ApplicationCommand{
 		Description: "Setting command for Kenkoukun",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Name:        "channel",
-				Description: "Configure kenkou channel. If not specified, returns the current channel.",
+				Name:        "dump",
+				Description: "Show current setting.",
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionChannel,
-						Name:        "channel",
-						Description: "Must be VoiceChannel",
-						ChannelTypes: []discordgo.ChannelType{
-							discordgo.ChannelTypeGuildVoice,
-						},
-						Required: false,
-					},
-				},
 			},
 			{
-				Name:        "time",
-				Description: "Configure kenkou time. If not specified, returns the current time.",
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "time",
-						Description: "Must be like 01:00",
-						Required:    false,
-					},
-				},
-			},
-			{
-				Name:        "alarm",
-				Description: "Configure alarm ON/OFF. If not specified, returns the current setting.",
+				Name:        "edit",
+				Description: "Edit setting.",
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Options: []*discordgo.ApplicationCommandOption{
 					{
 						Type:        discordgo.ApplicationCommandOptionBoolean,
 						Name:        "active",
-						Description: "T/F",
+						Description: "Enable Kenkou Alarm.",
 						Required:    false,
 					},
-				},
-			},
-			{
-				Name:        "weekday",
-				Description: "Configure Weekday-Only setting. If not specified, returns the current setting.",
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Type:        discordgo.ApplicationCommandOptionChannel,
+						Name:        "channel",
+						Description: "Kenkou Alarm channel. Must be VoiceChannel",
+						ChannelTypes: []discordgo.ChannelType{
+							discordgo.ChannelTypeGuildVoice,
+						},
+						Required: false,
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "time",
+						Description: "Kenkou Alarm time. Must be like 01:00",
+						Required:    false,
+					},
 					{
 						Type:        discordgo.ApplicationCommandOptionBoolean,
-						Name:        "only",
-						Description: "T/F",
+						Name:        "weekday",
+						Description: "Enable Kenkou Alarm only on weekdays",
 						Required:    false,
 					},
 				},
 			},
 			{
-				Name:        "dump-all-kenkou-settings",
+				Name:        "dump-all",
 				Description: "Dump all kenkou settings",
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 			},
@@ -112,120 +95,59 @@ func CommandHandler(session *discordgo.Session, i *discordgo.InteractionCreate) 
 
 	case "setting":
 		subcommand := i.ApplicationCommandData().Options[0]
+
 		switch subcommand.Name {
-		case "channel":
+		case "edit":
+			options := subcommand.Options
 			guildId := i.GuildID
 			setting, _ := GetGuildKenkouSetting(guildId)
 
-			// 指定がない場合は現在のチャンネルを返す
-			if len(subcommand.Options) != 0 {
-				newAlarmChannel := subcommand.Options[0].ChannelValue(session).ID
-				setting.AlarmChannel = &newAlarmChannel
-				setting = SaveGuildKenkouSetting(setting)
-			}
-
-			var content string
-			if setting.AlarmChannel == nil {
-				content = "Kenkou channel is not set.\nPlease use `/setting channel <channel>` command to set channel."
-			} else {
-				content = "Current kenkou channel is <#" + *setting.AlarmChannel + ">"
-			}
-
-			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: content,
-					Flags:   1 << 6,
-				},
-			})
-
-		case "time":
-			guildId := i.GuildID
-			setting, _ := GetGuildKenkouSetting(guildId)
-
-			if len(subcommand.Options) != 0 {
-				newTimeString := subcommand.Options[0].StringValue()
-				newTime, _ := time.Parse(time.TimeOnly, newTimeString+":00")
-				setting, _ := GetGuildKenkouSetting(guildId)
-				setting.AlarmTime = newTime
-				setting = SaveGuildKenkouSetting(setting)
-			}
-
-			content := "Current kenkou time is " + setting.AlarmTime.Format("15:04")
-
-			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: content,
-					Flags:   1 << 6,
-				},
-			})
-
-		case "alarm":
-			guildId := i.GuildID
-			setting, _ := GetGuildKenkouSetting(guildId)
-
-			if len(subcommand.Options) != 0 {
-				newAlarmActive := subcommand.Options[0].BoolValue()
-				setting, _ := GetGuildKenkouSetting(guildId)
-				setting.AlarmActive = newAlarmActive
-				setting = SaveGuildKenkouSetting(setting)
-			}
-
-			content := "Current setting is " + fmt.Sprintf("%t", setting.AlarmActive)
-
-			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: content,
-					Flags:   1 << 6,
-				},
-			})
-
-		case "weekday":
-			guildId := i.GuildID
-			setting, _ := GetGuildKenkouSetting(guildId)
-
-			if len(subcommand.Options) != 0 {
-				newAlarmWeekdayOnly := subcommand.Options[0].BoolValue()
-				setting, _ := GetGuildKenkouSetting(guildId)
-				setting.AlarmWeekdayOnly = newAlarmWeekdayOnly
-				setting = SaveGuildKenkouSetting(setting)
-			}
-
-			content := "Current setting is " + fmt.Sprintf("%t", setting.AlarmWeekdayOnly)
-
-			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: content,
-					Flags:   1 << 6,
-				},
-			})
-
-		case "dump-all-kenkou-settings":
-			kenkouSettings, _ := GetKenkouSettings()
-			content := "**Kenkou settings**"
-			content = content + "\n```"
-			content = content + "\n------------------------------------------------------------------------------------------"
-			content = content + "\n|        Guild        | AlarmActive |     AlarmChannel    | AlarmTime | AlarmWeekdayOnly |"
-			content = content + "\n------------------------------------------------------------------------------------------"
-			for _, setting := range kenkouSettings {
-				var alarmChannel string
-				if setting.AlarmChannel != nil {
-					alarmChannel = *setting.AlarmChannel
-				} else {
-					alarmChannel = "undefined"
+			for _, option := range options {
+				switch option.Name {
+				case "active":
+					setting.AlarmActive = option.BoolValue()
+				case "channel":
+					setting.AlarmChannel = &option.ChannelValue(session).ID
+				case "time":
+					// TODO: 入力形式バリデーション
+					newTime, _ := time.Parse(time.TimeOnly, option.StringValue()+":00")
+					setting.AlarmTime = newTime
+				case "weekday":
+					setting.AlarmWeekdayOnly = option.BoolValue()
 				}
-				content = content +
-					"\n| " + fmt.Sprintf("%19s", setting.Guild) +
-					" | " + fmt.Sprintf("%11s", fmt.Sprintf("%t", setting.AlarmActive)) +
-					" | " + fmt.Sprintf("%19s", alarmChannel) +
-					" | " + fmt.Sprintf("%9s", setting.AlarmTime.Format("15:04")) +
-					" | " + fmt.Sprintf("%16s", fmt.Sprintf("%t", setting.AlarmWeekdayOnly)) +
-					" |"
 			}
-			content = content + "\n------------------------------------------------------------------------------------------```"
+
+			SaveGuildKenkouSetting(setting)
+
+			content := GetDumpString([]KenkouSetting{setting})
+
+			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: content,
+					Flags:   1 << 6,
+				},
+			})
+
+		case "dump":
+			guildId := i.GuildID
+			setting, _ := GetGuildKenkouSetting(guildId)
+
+			// TODO: DumpではGuildは出したくない気もする
+			content := GetDumpString([]KenkouSetting{setting})
+
+			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: content,
+					Flags:   1 << 6,
+				},
+			})
+
+		case "dump-all":
+			kenkouSettings, _ := GetKenkouSettings()
+
+			content := GetDumpString(kenkouSettings)
 
 			session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
