@@ -33,9 +33,10 @@ func main() {
 		return
 	}
 
-	// Add command handler
-	session.AddHandler(kenkou.SlashCommandHandler)
-	session.AddHandler(channame.SlashCommandHandler)
+	// Add handlers
+	session.AddHandler(kenkou.CommandHandler)
+	session.AddHandler(kenkou.VoiceStateUpdate)
+	session.AddHandler(channame.CommandHandler)
 
 	// Open Discord session
 	err = session.Open()

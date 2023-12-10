@@ -9,23 +9,31 @@ import (
 )
 
 var HotaruDCABuffer = make([][]byte, 0)
+var vcStatusMap = map[string]*KenkouUserVoiceChatStatus{}
 
 func KenkouBatch(session *discordgo.Session) {
 	nowTime := time.Now()
-	if !checkWeekday(nowTime) {
-		return
-	}
+	weekday := checkWeekday(nowTime)
+
 	kenkouSettings, _ := GetKenkouSettings()
 	for _, setting := range kenkouSettings {
-		if setting.ChannelId == nil {
+		if !setting.AlarmActive {
 			continue
 		}
 
-		kenkouTime := setting.Time
+		if setting.AlarmChannel == nil {
+			continue
+		}
+
+		if !weekday && setting.AlarmWeekdayOnly {
+			continue
+		}
+
+		kenkouTime := setting.AlarmTime
 		kenkouTime = kenkouTime.Add(time.Minute * -5)
 		// MEMO: UTCとJSTごっちゃだけどなんか動くのでヨシッ！
 		if nowTime.Hour() == kenkouTime.Hour() && nowTime.Minute() == kenkouTime.Minute() {
-			go ForceKenkou(session, setting.GuildId, *setting.ChannelId)
+			go ForceKenkou(session, setting.Guild, *setting.AlarmChannel)
 		}
 	}
 }
@@ -41,7 +49,8 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 		log.Fatalf("Can't join vc: %v", err)
 		return
 	}
-	log.Println("|_･) VC Joined.")
+	log.Println("|_･) Start playing Hotaru.")
+	log.Println("     Guild: " + guildID + ", Channel: " + channelID)
 
 	vc.Speaking(true)
 	for _, buff := range HotaruDCABuffer {
@@ -49,10 +58,27 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 	}
 	vc.Speaking(false)
 
-	members, _ := s.GuildMembers(guildID, "", 1000)
-	for _, member := range members {
-		go s.GuildMemberMove(guildID, member.User.ID, nil)
+	log.Println("     Finish playing.")
+
+	for userID, status := range vcStatusMap {
+		if status.GuildID == guildID && status.ChannelID == channelID {
+			s.GuildMemberMove(guildID, userID, nil)
+			log.Println("     Member disconnected: " + userID)
+		}
 	}
 
-	log.Println("(･_| All kicked.")
+	vc.Disconnect()
+
+	log.Println("     All done.")
+}
+
+func VoiceStateUpdate(s *discordgo.Session, voiceState *discordgo.VoiceStateUpdate) {
+	if voiceState.UserID == s.State.User.ID {
+		return
+	}
+
+	vcStatusMap[voiceState.UserID] = &KenkouUserVoiceChatStatus{
+		GuildID:   voiceState.GuildID,
+		ChannelID: voiceState.ChannelID,
+	}
 }

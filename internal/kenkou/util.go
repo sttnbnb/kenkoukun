@@ -2,9 +2,7 @@ package kenkou
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -13,7 +11,6 @@ import (
 func LoadSound() error {
 	file, err := os.Open("assets/hotaru.dca")
 	if err != nil {
-		fmt.Println("Error opening dca file :", err)
 		return err
 	}
 
@@ -31,7 +28,6 @@ func LoadSound() error {
 		}
 
 		if err != nil {
-			fmt.Println("Error reading from dca file :", err)
 			return err
 		}
 
@@ -39,7 +35,6 @@ func LoadSound() error {
 		err = binary.Read(file, binary.LittleEndian, &InBuf)
 
 		if err != nil {
-			fmt.Println("Error reading from dca file :", err)
 			return err
 		}
 
@@ -49,8 +44,13 @@ func LoadSound() error {
 
 func checkWeekday(time time.Time) bool {
 	url := "https://s-proj.com/utils/checkHoliday.php?kind=h&date=" + time.Format("20060102")
-	resp, _ := http.Get(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		// 通信失敗したら平日で返しちゃえ
+		return true
+	}
+
 	defer resp.Body.Close()
-	byteArray, _ := ioutil.ReadAll(resp.Body)
+	byteArray, _ := io.ReadAll(resp.Body)
 	return string(byteArray) == "else"
 }

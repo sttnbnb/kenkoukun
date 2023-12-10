@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 #  Build Stage
 # -----------------------------------------------------------------------------
-FROM golang:1.20-alpine AS builder
+FROM golang:1.20-alpine3.17 AS builder
 
 ENV CGO_ENABLED=1
 WORKDIR /build/
