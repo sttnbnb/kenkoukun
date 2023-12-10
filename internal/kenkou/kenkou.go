@@ -9,6 +9,7 @@ import (
 )
 
 var HotaruDCABuffer = make([][]byte, 0)
+var vcStatusMap = map[string]*KenkouUserVoiceChatStatus{}
 
 func KenkouBatch(session *discordgo.Session) {
 	nowTime := time.Now()
@@ -49,7 +50,7 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 		return
 	}
 	log.Println("|_･) Start playing Hotaru.")
-	log.Println("     Guild: " + guildID + "Channel: " + channelID)
+	log.Println("     Guild: " + guildID + ", Channel: " + channelID)
 
 	vc.Speaking(true)
 	for _, buff := range HotaruDCABuffer {
@@ -59,14 +60,25 @@ func ForceKenkou(s *discordgo.Session, guildID string, channelID string) {
 
 	log.Println("     Finish playing.")
 
-	// TODO: ギルドメンバー全員拾ってるけどVCにいる人だけでいいよね
-	members, _ := s.GuildMembers(guildID, "", 1000)
-	for _, member := range members {
-		go func() {
-			s.GuildMemberMove(guildID, member.User.ID, nil)
-			log.Println("     Member kicked: " + member.User.ID)
-		}()
+	for userID, status := range vcStatusMap {
+		if status.GuildID == guildID && status.ChannelID == channelID {
+			s.GuildMemberMove(guildID, userID, nil)
+			log.Println("     Member disconnected: " + userID)
+		}
 	}
 
+	vc.Disconnect()
+
 	log.Println("     All done.")
+}
+
+func VoiceStateUpdate(s *discordgo.Session, voiceState *discordgo.VoiceStateUpdate) {
+	if voiceState.UserID == s.State.User.ID {
+		return
+	}
+
+	vcStatusMap[voiceState.UserID] = &KenkouUserVoiceChatStatus{
+		GuildID:   voiceState.GuildID,
+		ChannelID: voiceState.ChannelID,
+	}
 }
